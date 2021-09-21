@@ -1,4 +1,5 @@
-﻿using Interfaces;
+﻿using Autofac;
+using Interfaces;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -21,13 +22,11 @@ namespace AssemblyLoader
         private static void DoWork(Entry entry)
         {
             var assembly = Assembly.LoadFrom(Path.Combine(@"..\..\..\..\ClassLibraryBin\net5.0", entry.AssemblyName));
-            var type = assembly.GetTypes().FirstOrDefault(type => type.Name.Split('`')[0] == entry.TypeName);
-            if (type != null)
-            {
-                var type2 = type.MakeGenericType(entry.TypePars.Select(typeName => Type.GetType(typeName)).ToArray());
-                var obj = (IGreetings<string>)Activator.CreateInstance(type2);
-                Console.WriteLine(obj.Print("xyz"));
-            }
+            var builder = new ContainerBuilder();
+            builder.RegisterAssemblyOpenGenericTypes(assembly).Where(type => type.Name.Split('`')[0] == entry.TypeName).As(typeof(IGreetings<>));
+            using var container = builder.Build();
+            var obj = container.Resolve<IGreetings<string>>();
+            Console.WriteLine(obj.Print("xyz"));
         }
     }
 }
