@@ -21,7 +21,7 @@ namespace AssemblyLoader
         private static void DoWork(Entry entry)
         {
             var assembly = Assembly.LoadFrom(Path.Combine(@"..\..\..\..\ClassLibraryBin\net5.0", entry.AssemblyName));
-            var type = assembly.GetTypes().FirstOrDefault(type => type.Name.Contains(entry.TypeName));
+            var type = assembly.GetTypes().FirstOrDefault(type => type.Name.Split('`')[0] == entry.TypeName);
             if (type != null)
             {
                 var type2 = type.MakeGenericType(entry.TypePars.Select(typeName => Type.GetType(typeName)).ToArray());
